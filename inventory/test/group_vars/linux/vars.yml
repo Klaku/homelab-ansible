@@ -1,0 +1,1 @@
+os_administrator: "{{ vault_os_administrator }}"

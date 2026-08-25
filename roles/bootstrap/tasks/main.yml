@@ -1,0 +1,39 @@
+- name: Check whether sudo is installed
+  ansible.builtin.stat:
+    path: /usr/bin/sudo
+  register: sudo_bin
+
+- name: Grant sudo privileges on fresh host
+  when: not sudo_bin.stat.exists
+  become: true
+  become_method: su
+  become_user: root
+  block:
+    - name: Install sudo
+      ansible.builtin.apt:
+        name: sudo
+        state: present
+        update_cache: true
+
+    - name: Add administrator to sudo group
+      ansible.builtin.user:
+        name: "{{ bootstrap_user }}"
+        groups: sudo
+        append: true
+
+- name: Deploy SSH public key
+  ansible.posix.authorized_key:
+    user: "{{ bootstrap_user }}"
+    state: present
+    key: "{{ lookup('file', bootstrap_ssh_pubkey_path) }}"
+
+- name: Harden sshd and disable password login
+  become: true
+  ansible.builtin.template:
+    src: 10-disable-password.conf.j2
+    dest: /etc/ssh/sshd_config.d/10-disable-password.conf
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "sshd -t -f %s"
+  notify: Restart sshd

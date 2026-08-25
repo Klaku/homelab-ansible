@@ -1,0 +1,6 @@
+- name: Bootstrap fresh Debian server
+  hosts: linux
+  remote_user: "{{ os_administrator }}"
+  gather_facts: true
+  roles:
+    - bootstrap

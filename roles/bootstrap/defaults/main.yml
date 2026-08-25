@@ -1,0 +1,5 @@
+bootstrap_user: "{{ os_administrator }}"
+bootstrap_ssh_pubkey_file: "homelab.pub"
+bootstrap_ssh_pubkey_path: "{{ lookup('env','HOME') }}/.ssh/{{ bootstrap_ssh_pubkey_file }}"
+bootstrap_sshd_max_auth_tries: 3
+bootstrap_sshd_login_grace_time: 20
