@@ -1,0 +1,31 @@
+---
+- name: Update and upgrade apt packages
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: dist
+    cache_valid_time: 3600
+
+- name: Install base packages
+  ansible.builtin.apt:
+    name: "{{ base_packages }}"
+    state: present
+
+- name: Set system timezone
+  community.general.timezone:
+    name: "{{ base_timezone }}"
+
+- name: Generate system locale
+  ansible.builtin.locale_gen:
+    name: "{{ base_locale }}"
+    state: present
+
+- name: Remove unused packages
+  ansible.builtin.apt:
+    autoremove: true
+    purge: true
+
+- name: Configure htop
+  ansible.builtin.template:
+    src: htoprc.j2
+    dest: "/home/{{ os_administrator }}/.config/htop/htoprc"
+

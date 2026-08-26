@@ -1,0 +1,16 @@
+---
+base_packages:
+  - nano             # text editor
+  - curl             # HTTP client / API requests
+  - wget             # file downloader
+  - git              # version control
+  - htop             # interactive process monitor
+  - ca-certificates  # trusted CA certs for TLS/HTTPS
+  - gnupg            # GPG keys & signature verification
+  - rsync            # fast file sync / copy
+  - unzip            # extract .zip archives
+  - nfs-common       # NFS client for mounting network shares
+
+base_timezone: "Europe/Warsaw"
+
+base_locale: "en_US.UTF-8"

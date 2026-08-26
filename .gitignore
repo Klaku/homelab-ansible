@@ -1,1 +1,3 @@
 .venv/
+.vault_password_file
+.become_password_file

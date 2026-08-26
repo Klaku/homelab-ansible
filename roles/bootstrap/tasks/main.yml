@@ -37,3 +37,19 @@
     mode: "0644"
     validate: "sshd -t -f %s"
   notify: Restart sshd
+
+- name: Verify administrator has working sudo
+  ansible.builtin.command: sudo -l -U {{ os_administrator }}
+  register: base_sudo_check
+  changed_when: false
+  failed_when: base_sudo_check.rc != 0
+
+- name: Check root password status
+  ansible.builtin.command: passwd -S root
+  register: base_root_pw
+  changed_when: false
+
+- name: Lock root password
+  ansible.builtin.command: passwd -l root
+  when: base_root_pw.stdout.split()[1] not in ['L', 'LK']
+  changed_when: true
