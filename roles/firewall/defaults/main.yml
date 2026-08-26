@@ -1,0 +1,5 @@
+---
+firewall_default_incoming: deny
+firewall_default_outgoing: allow
+
+firewall_log_level: low # "on" | "off" | "low" | "medium" | "high" | "full"

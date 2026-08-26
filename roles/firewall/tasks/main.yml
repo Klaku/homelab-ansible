@@ -1,0 +1,36 @@
+---
+- name: Install ufw
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+    update_cache: true
+
+- name: Reset ufw 
+  community.general.ufw:
+    state: reset
+
+- name: Allow SSH access from local network
+  community.general.ufw:
+    rule: limit
+    port: "22"
+    proto: "tcp"
+    comment: "Allow access from RFC1918 local network"
+    from_ip: "192.168.0.0/16"
+
+- name: Set default incoming policy
+  community.general.ufw:
+    direction: incoming
+    policy: "{{ firewall_default_incoming }}"
+
+- name: Set default outgoing policy
+  community.general.ufw:
+    direction: outgoing
+    policy: "{{ firewall_default_outgoing }}"
+
+- name: Set firewall logging level
+  community.general.ufw:
+    logging: "{{ firewall_log_level }}"
+
+- name: Enable ufw
+  community.general.ufw:
+    state: enabled
