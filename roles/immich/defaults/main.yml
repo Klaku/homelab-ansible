@@ -1,0 +1,19 @@
+---
+immich_user: immich
+immich_group: immich
+immich_uid: 1001
+immich_gid: 1001
+immich_postgres_uid: 999
+immich_postgres_gid: 999
+
+immich_data_root: /srv/immich
+immich_upload_location: "{{ immich_data_root }}/uploads"
+immich_db_data_location: "{{ immich_data_root }}/db_data"
+
+immich_version: v3
+
+immich_db_password: "{{ vault_immich_db_password }}"
+immich_db_username: postgres
+immich_db_database_name: immich
+
+immich_tz: Europe/Warsaw

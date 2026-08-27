@@ -38,3 +38,10 @@
   become: true
   roles:
     - docker
+
+- name: Run Immich container
+  hosts: srv01
+  become: true
+  tags: run
+  roles:
+    - immich
