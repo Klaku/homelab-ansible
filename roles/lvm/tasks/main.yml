@@ -1,4 +1,9 @@
 ---
+- name: Assert supported OS
+  ansible.builtin.assert:
+    that: ansible_os_family == 'Debian'
+    fail_msg: "The lvm role supports only Debian/Ubuntu (got {{ ansible_os_family }})"
+
 - name: Install LVM tooling
   ansible.builtin.apt:
     name:

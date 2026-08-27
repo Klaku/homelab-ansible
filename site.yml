@@ -9,13 +9,15 @@
 
 - name: Configure direct attached storage (DAS)
   hosts: srv01
+  become: true
   roles:
-    - role: lvm_provision
+    - role: lvm
       vars:
         lvm_volume_groups:
           - name: vg_data
             devices:
-              # Use: ls -l /dev/disk/by-id/ | grep -i usb
+              # Stable device path (survives reboots/re-plug, unlike /dev/sdX).
+              # List candidates: ls -l /dev/disk/by-id/ | grep -i usb
               - /dev/disk/by-id/usb-External_USB3.0_20170331000D4-0:0
         lvm_logical_volumes:
           - name: lv_immich

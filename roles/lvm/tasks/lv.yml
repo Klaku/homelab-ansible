@@ -22,6 +22,14 @@
     force: true
   when: _lv_state == 'absent'
 
+- name: "[{{ lv.vg }}/{{ lv.name }}] Remove mountpoint directory"
+  ansible.builtin.file:
+    path: "{{ lv.mountpoint }}"
+    state: absent
+  when:
+    - _lv_state == 'absent'
+    - lv.mountpoint is defined
+
 - name: "[{{ lv.vg }}/{{ lv.name }}] Check LV exists"
   ansible.builtin.command:
     cmd: "lvs {{ _lv_path }}"
@@ -45,6 +53,9 @@
     state: present
   when: _lv_state == 'present'
 
+# NOTE: force is intentionally omitted. The module refuses to overwrite an
+# existing filesystem, so changing fstype on a populated LV fails by design
+# (data protection). To reformat, remove the LV first (state: absent).
 - name: "[{{ lv.vg }}/{{ lv.name }}] Create filesystem"
   community.general.filesystem:
     fstype: "{{ _lv_fstype }}"
