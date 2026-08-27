@@ -46,4 +46,5 @@
   roles:
     - immich
     - vaultwarden
+    - authentik
     - nginx

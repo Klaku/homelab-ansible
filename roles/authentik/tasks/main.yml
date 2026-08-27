@@ -1,0 +1,77 @@
+---
+- name: Create authentik group
+  ansible.builtin.group:
+    name: "{{ authentik_group }}"
+    gid: "{{ authentik_gid }}"
+    system: true
+
+- name: Create authentik user
+  ansible.builtin.user:
+    name: "{{ authentik_user }}"
+    uid: "{{ authentik_uid }}"
+    group: "{{ authentik_group }}"
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Verify data mountpoint
+  ansible.builtin.command: mountpoint -q {{ authentik_data_root }}
+  register: authentik_mount
+  changed_when: false
+  failed_when: authentik_mount.rc != 0
+
+- name: Create upload directory
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ authentik_uid }}"
+    group: "{{ authentik_gid }}"
+    mode: "0750"
+  loop:
+    - "{{ authentik_data_location }}"
+    - "{{ authentik_certs_location }}"
+    - "{{ authentik_custom_templates_location }}"
+
+- name: Create Postgres data directory
+  ansible.builtin.file:
+    path: "{{ authentik_db_data_location }}"
+    state: directory
+    owner: "{{ authentik_postgres_uid }}"
+    group: "{{ authentik_postgres_gid }}"
+    mode: "0700"
+
+- name: Create compose directory
+  ansible.builtin.file:
+    path: /opt/authentik
+    state: directory
+    owner: root
+    group: "{{ authentik_gid }}"
+    mode: "0750"
+
+- name: Deploy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /opt/authentik/docker-compose.yml
+    owner: root
+    group: "{{ authentik_gid }}"
+    mode: "0640"
+  notify: Restart authentik
+
+- name: Deploy .env file
+  ansible.builtin.template:
+    src: env.j2
+    dest: /opt/authentik/.env
+    owner: root
+    group: "{{ authentik_gid }}"
+    mode: "0640"
+  notify: Restart authentik
+
+- name: Start authentik stack
+  community.docker.docker_compose_v2:
+    project_src: /opt/authentik
+    state: present
+    pull: always
+  register: authentik_up
+  retries: 5
+  delay: 30
+  until: authentik_up is not failed

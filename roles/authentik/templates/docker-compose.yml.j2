@@ -1,0 +1,76 @@
+---
+name: authentik
+
+services:
+  authentik_postgresql:
+    container_name: authentik_postgresql
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: "{{ authentik_postgres_database }}"
+      POSTGRES_PASSWORD: ${PG_PASS}
+      POSTGRES_USER: "{{ authentik_postgres_user }}"
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      test:
+        - CMD-SHELL
+        - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
+      timeout: 5s
+    image: docker.io/library/postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - ${DB_DATA_LOCATION}:/var/lib/postgresql/data
+    networks: [internal]
+  authentik_server:
+    container_name: authentik_server
+    command: server
+    depends_on:
+      authentik_postgresql:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: authentik_postgresql
+      AUTHENTIK_POSTGRESQL__NAME: "{{authentik_postgres_database}}"
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+      AUTHENTIK_POSTGRESQL__USER: "{{ authentik_postgres_user }}"
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+    image: "ghcr.io/goauthentik/server:{{ authentik_version_tag }}"
+    restart: unless-stopped
+    shm_size: 512mb
+    user: "{{ authentik_uid }}:{{ authentik_gid }}"
+    volumes:
+      - "{{ authentik_data_location }}:/data"
+      - "{{ authentik_custom_templates_location }}:/templates"
+    networks: [internal, proxy]
+  authentik_worker:
+    container_name: authentik_worker
+    command: worker
+    depends_on:
+      authentik_postgresql:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: authentik_postgresql
+      AUTHENTIK_POSTGRESQL__NAME: "{{ authentik_postgres_database }}"
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+      AUTHENTIK_POSTGRESQL__USER: "{{ authentik_postgres_user }}"
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+    image: "ghcr.io/goauthentik/server:{{ authentik_version_tag }}"
+    restart: unless-stopped
+    shm_size: 512mb
+    user: "{{ authentik_uid }}:{{ authentik_gid }}"
+    volumes:
+      - "{{ authentik_data_location }}:/data"
+      - "{{ authentik_certs_location }}:/certs"
+      - "{{ authentik_custom_templates_location }}:/templates"
+    networks: [internal, proxy]
+
+networks:
+  internal:
+    internal: true
+  proxy:
+    external: true

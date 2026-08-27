@@ -1,0 +1,26 @@
+authentik_postgres_password: "{{ vault_authentik_postgres_password }}"
+authentik_secret_key: "{{ vault_authentik_secret_key }}"
+
+authentik_smtp_from: "{{ smtp_from }}"
+authentik_smtp_user: "{{ smtp_username }}"
+authentik_smtp_password: "{{ smtp_password }}"
+
+authentik_postgres_database: authentik
+authentik_postgres_user: authentik
+
+authentik_version_tag: 2026.5.6
+
+authentik_group: authentik
+authentik_gid: 1004
+
+authentik_user: authentik
+authentik_uid: 1004
+
+authentik_postgres_uid: 70
+authentik_postgres_gid: 70
+
+authentik_data_root: /srv/authentik
+authentik_data_location: "{{ authentik_data_root }}/data"
+authentik_certs_location: "{{ authentik_data_root }}/certs"
+authentik_custom_templates_location: "{{ authentik_data_root }}/custom-templates"
+authentik_db_data_location: "{{ authentik_data_root }}/database"
