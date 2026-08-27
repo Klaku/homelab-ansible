@@ -2,12 +2,12 @@
 name: authentik
 
 services:
-  authentik_server:
+  authentik-server:
     container_name: authentik_server
     image: "ghcr.io/goauthentik/server:{{ authentik_version_tag }}"
     command: server
     depends_on:
-      authentik_postgresql:
+      authentik-postgresql:
         condition: service_healthy
     user: "{{ authentik_uid }}:{{ authentik_gid }}"
     shm_size: 512mb
@@ -25,12 +25,12 @@ services:
     networks: [internal, proxy]
     restart: unless-stopped
 
-  authentik_worker:
+  authentik-worker:
     container_name: authentik_worker
     image: "ghcr.io/goauthentik/server:{{ authentik_version_tag }}"
     command: worker
     depends_on:
-      authentik_postgresql:
+      authentik-postgresql:
         condition: service_healthy
     user: "{{ authentik_uid }}:{{ authentik_gid }}"
     shm_size: 512mb
@@ -48,7 +48,7 @@ services:
     networks: [internal, proxy]
     restart: unless-stopped
 
-  authentik_postgresql:
+  authentik-postgresql:
     container_name: authentik_postgresql
     image: docker.io/library/postgres:16-alpine
     env_file:
