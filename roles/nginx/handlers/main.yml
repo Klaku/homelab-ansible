@@ -1,7 +1,11 @@
 ---
+# Config-only changes (nginx.conf, per-site confs): graceful reload, no downtime.
 - name: Reload nginx
+  ansible.builtin.command: docker exec {{ certbot_nginx_container }} nginx -s reload
+  changed_when: true
+
+# Compose changes (ports, volumes, image): full container restart required.
+- name: Restart nginx
   community.docker.docker_compose_v2:
     project_src: /opt/nginx
     state: restarted
-- name: reload nginx container
-  ansible.builtin.command: docker exec {{ certbot_nginx_container }} nginx -s reload

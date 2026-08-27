@@ -60,10 +60,11 @@
       - --agree-tos
       - --config-dir={{ nginx_certs_dir }}
       - --email={{ certbot_email }}
-      - --deploy-hook=docker exec {{ certbot_nginx_container }} nginx -s reload
+      # '|| true' so the very first issuance (nginx not started yet) does not
+      # fail on the reload; on renewals nginx is running and the reload applies.
+      - --deploy-hook=docker exec {{ certbot_nginx_container }} nginx -s reload || true
     domain_args: "{{ certbot_domains | map('regex_replace', '^(.*)$', '-d \\1') | list }}"
   when: not cert_file.stat.exists
-  notify: reload nginx container
 
 - name: Deploy certbot renewal service
   ansible.builtin.copy:

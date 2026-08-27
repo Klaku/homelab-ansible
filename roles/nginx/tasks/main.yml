@@ -27,7 +27,7 @@
     owner: root
     group: "root"
     mode: "0640"
-  notify: Reload nginx
+  notify: Restart nginx
 
 - name: Deploy main nginx.conf
   ansible.builtin.template:
@@ -51,6 +51,13 @@
     label: "{{ item | basename }}"
   notify: Reload nginx
 
+# Certificates must exist before nginx starts: every server block references
+# ssl_certificate, so nginx fails its config test (and never starts) on a fresh
+# host if the certs are missing. certbot uses DNS-01 and does not need nginx
+# running, so we issue first, then start.
+- name: Include certbot tasks
+  ansible.builtin.import_tasks: certbot.yml
+
 - name: Start nginx
   community.docker.docker_compose_v2:
     project_src: /opt/nginx
@@ -60,6 +67,3 @@
   retries: 5
   delay: 30
   until: nginx_up is not failed
-
-- name: Include certbot tasks
-  ansible.builtin.import_tasks: certbot.yml
