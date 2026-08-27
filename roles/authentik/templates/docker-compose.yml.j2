@@ -65,7 +65,6 @@ services:
     user: "{{ authentik_uid }}:{{ authentik_gid }}"
     volumes:
       - "{{ authentik_data_location }}:/data"
-      - "{{ authentik_certs_location }}:/certs"
       - "{{ authentik_custom_templates_location }}:/templates"
     networks: [internal, proxy]
 

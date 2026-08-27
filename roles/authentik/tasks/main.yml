@@ -29,7 +29,6 @@
     mode: "0750"
   loop:
     - "{{ authentik_data_location }}"
-    - "{{ authentik_certs_location }}"
     - "{{ authentik_custom_templates_location }}"
 
 - name: Create Postgres data directory
