@@ -1,0 +1,20 @@
+---
+#  - name: vg_data
+#    devices:
+#      - /dev/disk/by-id/usb-....
+# =======================================
+# ls -l /dev/disk/by-id/ | grep -i usb
+# =======================================
+lvm_volume_groups: []
+
+# - name: lv_<name>
+#   vg: vg_<name>
+#   size: "500G"
+#   mountpoint: /srv/<name>
+lvm_logical_volumes: []
+
+lvm_default_fstype: ext4
+lvm_default_opts: "defaults,noatime,nofail,x-systemd.device-timeout=10"
+lvm_default_owner: root
+lvm_default_group: root
+lvm_default_mode: "0755"

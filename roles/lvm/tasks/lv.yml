@@ -1,0 +1,88 @@
+---
+- name: "[{{ lv.vg }}/{{ lv.name }}] Set LogicalVolume facts"
+  ansible.builtin.set_fact:
+    _lv_state: "{{ lv.state | default('present') }}"
+    _lv_fstype: "{{ lv.fstype | default(lvm_default_fstype) }}"
+    _lv_opts: "{{ lv.opts | default(lvm_default_opts) }}"
+    _lv_path: "/dev/{{ lv.vg }}/{{ lv.name }}"
+
+- name: "[{{ lv.vg }}/{{ lv.name }}] Unmount filesystem"
+  ansible.posix.mount:
+    path: "{{ lv.mountpoint }}"
+    state: absent
+  when:
+    - _lv_state == 'absent'
+    - lv.mountpoint is defined
+
+- name: "[{{ lv.vg }}/{{ lv.name }}] Remove LV"
+  community.general.lvol:
+    vg: "{{ lv.vg }}"
+    lv: "{{ lv.name }}"
+    state: absent
+    force: true
+  when: _lv_state == 'absent'
+
+- name: "[{{ lv.vg }}/{{ lv.name }}] Remove mountpoint directory"
+  ansible.builtin.file:
+    path: "{{ lv.mountpoint }}"
+    state: absent
+  when:
+    - _lv_state == 'absent'
+    - lv.mountpoint is defined
+
+- name: "[{{ lv.vg }}/{{ lv.name }}] Check LV exists"
+  ansible.builtin.command:
+    cmd: "lvs {{ _lv_path }}"
+  register: _lv_check
+  changed_when: false
+  failed_when: false
+  when: _lv_state == 'present'
+
+- name: "[{{ lv.vg }}/{{ lv.name }}] Set LV existence fact"
+  ansible.builtin.set_fact:
+    _lv_exists: "{{ (_lv_check.rc | default(1)) == 0 }}"
+  when: _lv_state == 'present'
+
+- name: "[{{ lv.vg }}/{{ lv.name }}] Create or extend LV"
+  community.general.lvol:
+    vg: "{{ lv.vg }}"
+    lv: "{{ lv.name }}"
+    size: "{{ lv.size }}"
+    resizefs: "{{ _lv_exists | default(false) | bool }}"
+    shrink: false
+    state: present
+  when: _lv_state == 'present'
+
+# NOTE: force is intentionally omitted. The module refuses to overwrite an
+# existing filesystem, so changing fstype on a populated LV fails by design
+# (data protection). To reformat, remove the LV first (state: absent).
+- name: "[{{ lv.vg }}/{{ lv.name }}] Create filesystem"
+  community.general.filesystem:
+    fstype: "{{ _lv_fstype }}"
+    dev: "{{ _lv_path }}"
+  when: _lv_state == 'present'
+
+- name: "[{{ lv.vg }}/{{ lv.name }}] Read filesystem UUID"
+  ansible.builtin.command:
+    cmd: "blkid -s UUID -o value {{ _lv_path }}"
+  register: _lv_uuid
+  changed_when: false
+  when: _lv_state == 'present'
+
+- name: "[{{ lv.vg }}/{{ lv.name }}] Create mountpoint"
+  ansible.builtin.file:
+    path: "{{ lv.mountpoint }}"
+    state: directory
+    owner: "{{ lv.owner | default(lvm_default_owner) }}"
+    group: "{{ lv.group | default(lvm_default_group) }}"
+    mode: "{{ lv.mode | default(lvm_default_mode) }}"
+  when: _lv_state == 'present'
+
+- name: "[{{ lv.vg }}/{{ lv.name }}] Add fstab entry"
+  ansible.posix.mount:
+    path: "{{ lv.mountpoint }}"
+    src: "UUID={{ _lv_uuid.stdout }}"
+    fstype: "{{ _lv_fstype }}"
+    opts: "{{ _lv_opts }}"
+    state: mounted
+  when: _lv_state == 'present'
