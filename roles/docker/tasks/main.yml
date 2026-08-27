@@ -1,0 +1,16 @@
+---
+- name: Include install tasks
+  ansible.builtin.import_tasks: install.yml
+
+- name: Include config tasks
+  ansible.builtin.import_tasks: config.yml
+
+- name: Include user tasks
+  ansible.builtin.import_tasks: users.yml
+  when: docker_users | length > 0
+
+- name: Create Docker network
+  community.docker.docker_network:
+    name: proxy
+    driver: bridge
+    state: present

@@ -6,3 +6,9 @@
     - bootstrap
     - base
     - firewall
+
+- name: Configure Docker hosts
+  hosts: docker_hosts
+  become: true
+  roles:
+    - docker

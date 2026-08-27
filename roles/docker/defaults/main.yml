@@ -1,0 +1,23 @@
+---
+docker_edition: docker-ce
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
+docker_users: 
+  - "{{ os_administrator }}"
+
+docker_daemon_options:
+  log-driver: json-file
+  log-opts:
+    max-size: "10m"
+    max-file: "3"
+  storage-driver: overlay2
+  live-restore: true
+  iptables: true
+
+docker_service_enabled: true
+docker_service_state: started
