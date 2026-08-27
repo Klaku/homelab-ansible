@@ -1,0 +1,12 @@
+---
+nginx_base_dir: /srv/nginx
+nginx_conf_dir: "{{ nginx_base_dir }}/conf.d"
+nginx_certs_dir: "{{ nginx_base_dir }}/certs"
+nginx_logs_dir: "{{ nginx_base_dir }}/logs"
+
+certbot_nginx_container: nginx
+certbot_domains: "{{ vault_certbot_domains }}"
+certbot_email: "{{ vault_certbot_email }}"
+certbot_dns_propagation_seconds: 120
+certbot_credentials_path: /root/.secrets/dynu.ini
+certbot_api_token: "{{ vault_certbot_api_token }}"

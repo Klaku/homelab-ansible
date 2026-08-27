@@ -1,0 +1,6 @@
+smtp_host: 'smtp.gmail.com'
+smtp_port: 587
+smtp_protocol: 'starttls'
+smtp_from: '{{ vault_smtp_from }}'
+smtp_username: '{{ vault_smtp_username }}'
+smtp_password: '{{ vault_smtp_password }}'

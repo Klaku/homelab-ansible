@@ -1,0 +1,7 @@
+---
+- name: Reload nginx
+  community.docker.docker_compose_v2:
+    project_src: /opt/nginx
+    state: restarted
+- name: reload nginx container
+  ansible.builtin.command: docker exec {{ certbot_nginx_container }} nginx -s reload

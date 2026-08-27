@@ -1,0 +1,96 @@
+- name: Install python3-venv
+  ansible.builtin.apt:
+    name:
+      - python3-venv
+    state: present
+    update_cache: true
+
+- name: Create certbot virtualenv
+  ansible.builtin.command:
+    cmd: python3 -m venv /opt/certbot
+    creates: /opt/certbot/bin/activate
+
+- name: Install certbot and Dynu plugin
+  ansible.builtin.pip:
+    name:
+      - certbot
+      - certbot-dns-dynu-dev
+    state: present
+    virtualenv: /opt/certbot
+    virtualenv_command: python3 -m venv
+
+- name: Symlink certbot into PATH
+  ansible.builtin.file:
+    src: /opt/certbot/bin/certbot
+    dest: /usr/local/bin/certbot
+    state: link
+
+- name: Create secrets directory
+  ansible.builtin.file:
+    path: "{{ certbot_credentials_path | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Deploy Dynu credentials
+  ansible.builtin.template:
+    src: dynu.ini.j2
+    dest: "{{ certbot_credentials_path }}"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Check for existing certificate
+  ansible.builtin.stat:
+    path: "{{ nginx_certs_dir }}/live/{{ certbot_domains[0] }}/fullchain.pem"
+  register: cert_file
+
+- name: Issue certificate via DNS-01
+  ansible.builtin.command:
+    argv: "{{ base_args + domain_args }}"
+  vars:
+    base_args:
+      - certbot
+      - certonly
+      - --authenticator=dns-dynu
+      - --dns-dynu-credentials={{ certbot_credentials_path }}
+      - --dns-dynu-propagation-seconds={{ certbot_dns_propagation_seconds }}
+      - --non-interactive
+      - --agree-tos
+      - --config-dir={{ nginx_certs_dir }}
+      - --email={{ certbot_email }}
+      - --deploy-hook=docker exec {{ certbot_nginx_container }} nginx -s reload
+    domain_args: "{{ certbot_domains | map('regex_replace', '^(.*)$', '-d \\1') | list }}"
+  when: not cert_file.stat.exists
+  notify: reload nginx container
+
+- name: Deploy certbot renewal service
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/certbot-renew.service
+    content: |
+      [Unit]
+      Description=Certbot renewal
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/certbot renew --config-dir {{ nginx_certs_dir }} --quiet
+
+- name: Deploy certbot renewal timer
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/certbot-renew.timer
+    content: |
+      [Unit]
+      Description=Run certbot renewal twice daily
+      [Timer]
+      OnCalendar=*-*-* 00,12:00:00
+      RandomizedDelaySec=3600
+      Persistent=true
+      [Install]
+      WantedBy=timers.target
+
+- name: Enable certbot renewal timer
+  ansible.builtin.systemd:
+    name: certbot-renew.timer
+    enabled: true
+    state: started
+    daemon_reload: true

@@ -1,0 +1,26 @@
+---
+vaultwarden_group: vaultwarden
+vaultwarden_gid: 1003
+
+vaultwarden_user: vaultwarden
+vaultwarden_uid: 1003
+
+vaultwarden_data_root: /srv/vaultwarden
+vaultwarden_data_location: "{{ vaultwarden_data_root }}/data"
+
+vaultwarden_image_tag: "1.37.1"
+
+vaultwarden_domain: https://vw.{{ vault_certbot_domains[0] }}
+vaultwarden_invitation_org_name: "{{ vault_vaultwarden_invitation_org_name}}"
+vaultwarden_signups_allowed: false
+vaultwarden_signups_domains: []
+
+vaultwarden_admin_enabled: true
+vaultwarden_admin_token: "{{ vault_vaultwarden_admin_token }}"
+
+vaultwarden_smtp_host: "{{ smtp_host}}"
+vaultwarden_smtp_from: "{{vault_smtp_from}}"
+vaultwarden_smtp_port: "{{ smtp_port }}"
+vaultwarden_smtp_security: "{{ smtp_protocol }}"
+vaultwarden_smtp_username: "{{vault_smtp_username}}"
+vaultwarden_smtp_password: "{{vault_smtp_password}}"

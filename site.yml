@@ -45,3 +45,5 @@
   tags: run
   roles:
     - immich
+    - vaultwarden
+    - nginx

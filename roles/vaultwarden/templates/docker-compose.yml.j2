@@ -1,0 +1,25 @@
+---
+name: vaultwarden
+
+services:
+  vaultwarden:
+    container_name: vaultwarden
+    image: vaultwarden/server:{{ vaultwarden_image_tag }}
+    security_opt:
+      - no-new-privileges:true
+    user: "{{ vaultwarden_uid }}:{{ vaultwarden_gid }}"
+    volumes:
+      - "{{ vaultwarden_data_location }}:/data"
+    env_file:
+      - .env
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+    networks: [proxy]
+    read_only: true
+    tmpfs:
+      - /tmp
+
+networks:
+  proxy:
+    external: true
