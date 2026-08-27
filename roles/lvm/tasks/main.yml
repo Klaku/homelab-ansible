@@ -1,0 +1,23 @@
+---
+- name: Install LVM tooling
+  ansible.builtin.apt:
+    name:
+      - lvm2
+      - e2fsprogs
+      - util-linux
+    state: present
+    update_cache: true
+
+- name: Provision volume groups
+  ansible.builtin.include_tasks: vg.yml
+  loop: "{{ lvm_volume_groups }}"
+  loop_control:
+    loop_var: vg
+    label: "{{ vg.name }}"
+
+- name: Provision logical volumes
+  ansible.builtin.include_tasks: lv.yml
+  loop: "{{ lvm_logical_volumes }}"
+  loop_control:
+    loop_var: lv
+    label: "{{ lv.vg }}/{{ lv.name }} ({{ lv.state | default('present') }})"

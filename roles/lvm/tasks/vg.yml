@@ -1,0 +1,20 @@
+---
+- name: "[{{ vg.name }}] Check VolumeGroup exists"
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  register: _volume_group_devices
+  loop: "{{ vg.devices }}"
+
+- name: "[{{ vg.name }}] Fail if device missing"
+  ansible.builtin.fail:
+    msg: "Device {{ item.item }} assigned to VolumeGroup {{ vg.name }} did not exists"
+  when: not item.stat.exists
+  loop: "{{  _volume_group_devices.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: "[{{ vg.name }}] Create or update VG"
+  community.general.lvg:
+    vg: "{{ vg.name }}"
+    pvs: "{{ vg.devices | join(',') }}"
+    state: present

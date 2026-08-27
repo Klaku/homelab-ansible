@@ -7,6 +7,30 @@
     - base
     - firewall
 
+- name: Configure direct attached storage (DAS)
+  hosts: srv01
+  roles:
+    - role: lvm_provision
+      vars:
+        lvm_volume_groups:
+          - name: vg_data
+            devices:
+              # Use: ls -l /dev/disk/by-id/ | grep -i usb
+              - /dev/disk/by-id/usb-External_USB3.0_20170331000D4-0:0
+        lvm_logical_volumes:
+          - name: lv_immich
+            vg: vg_data
+            size: "500G"
+            mountpoint: /srv/immich
+          - name: lv_vaultwarden
+            vg: vg_data
+            size: "10G"
+            mountpoint: /srv/vaultwarden
+          - name: lv_authentik
+            vg: vg_data
+            size: "10G"
+            mountpoint: /srv/authentik
+
 - name: Configure Docker hosts
   hosts: docker_hosts
   become: true
